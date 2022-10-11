@@ -17,6 +17,6 @@ func NewProtoRevDecorator(protoRevDecorator Keeper) ProtoRevDecorator {
 }
 
 func (protoRevDec ProtoRevDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
-	fmt.Println("we are out here in the antehandler")
-	return ctx, nil
+	fmt.Println("Antehandler: PRINT PRINT")
+	return next(ctx, tx, simulate)
 }
