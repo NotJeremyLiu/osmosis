@@ -21,25 +21,25 @@ const (
 const (
 	prefixNeedToArb = iota + 1
 	prefixArbDetails
-	prefixPairsToIDs
-	prefixTokenToTokens
+	prefixConnectedTokens
+	prefixConnectedTokensToPoolIDs
 	prefixPoolToRoutes
 )
 
 var (
 	// ProtoRev Code
-	KeyNeedToArb     = []byte{prefixNeedToArb}
-	KeyArbDeatils    = []byte{prefixArbDetails}
-	KeyPairsToIDs    = []byte{prefixPairsToIDs}
-	KeyTokenToTokens = []byte{prefixTokenToTokens}
-	KeyPoolToRoutes  = []byte{prefixPoolToRoutes}
+	KeyNeedToArb                = []byte{prefixNeedToArb}
+	KeyArbDetails               = []byte{prefixArbDetails}
+	KeyConnectedTokens          = []byte{prefixConnectedTokens}
+	KeyConnectedTokensToPoolIDs = []byte{prefixConnectedTokensToPoolIDs}
+	KeyPoolToRoutes             = []byte{prefixPoolToRoutes}
 )
 
-func GetTokenStoreKey(token string) []byte {
+func GetConnectedTokensStoreKey(token string) []byte {
 	return []byte(fmt.Sprintf("token/%s", token))
 }
 
-func GetConnectedTokensPoolIDsStoreKey(tokenA, tokenB string) []byte {
+func GetConnectedTokensToPoolIDsStoreKey(tokenA, tokenB string) []byte {
 	// Compare tokenA and tokenB to see which one is alphabetically first
 	if tokenA < tokenB {
 		return []byte(fmt.Sprintf("connected_tokens/%s/%s", tokenA, tokenB))
@@ -48,10 +48,6 @@ func GetConnectedTokensPoolIDsStoreKey(tokenA, tokenB string) []byte {
 	}
 }
 
-func GetPoolRoutesStoreKey(poolId uint64) []byte {
+func GetPoolToRoutesStoreKey(poolId uint64) []byte {
 	return []byte(fmt.Sprintf("pool_routes/%d", poolId))
-}
-
-func KeyPrefix(p string) []byte {
-	return []byte(p)
 }
