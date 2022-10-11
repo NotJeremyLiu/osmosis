@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	gammtypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
@@ -19,6 +21,7 @@ func (k Keeper) Hooks() Hooks { return Hooks{k} }
 
 // AfterPoolCreated creates a gauge for each pool’s lockable duration.
 func (h Hooks) AfterPoolCreated(ctx sdk.Context, sender sdk.AccAddress, poolId uint64) {
+	fmt.Println("AfterPoolCreated: IN THE HOOK")
 }
 
 // AfterJoinPool hook is a noop.
