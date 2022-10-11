@@ -72,6 +72,8 @@ import (
 	"github.com/osmosis-labs/osmosis/v12/x/txfees"
 	txfeeskeeper "github.com/osmosis-labs/osmosis/v12/x/txfees/keeper"
 	txfeestypes "github.com/osmosis-labs/osmosis/v12/x/txfees/types"
+
+	protorevkeeper "github.com/osmosis-labs/osmosis/v12/x/protorev/keeper"
 )
 
 type AppKeepers struct {
@@ -111,6 +113,9 @@ type AppKeepers struct {
 	GovKeeper            *govkeeper.Keeper
 	WasmKeeper           *wasm.Keeper
 	TokenFactoryKeeper   *tokenfactorykeeper.Keeper
+
+	ProtoRevKeeper *protorevkeeper.Keeper
+
 	// IBC modules
 	// transfer module
 	TransferModule transfer.AppModule
@@ -243,6 +248,12 @@ func (appKeepers *AppKeepers) InitNormalKeepers(
 		appKeepers.GetSubspace(gammtypes.ModuleName),
 		appKeepers.AccountKeeper, appKeepers.BankKeeper, appKeepers.DistrKeeper)
 	appKeepers.GAMMKeeper = &gammKeeper
+
+	protorevKeeper := protorevkeeper.NewKeeper(
+		appCodec, appKeepers.keys[gammtypes.StoreKey],
+		appKeepers.GetSubspace(gammtypes.ModuleName),
+		appKeepers.AccountKeeper, appKeepers.BankKeeper, appKeepers.GAMMKeeper)
+	appKeepers.ProtoRevKeeper = &protorevKeeper
 
 	appKeepers.TwapKeeper = twap.NewKeeper(
 		appKeepers.keys[twaptypes.StoreKey],
@@ -461,6 +472,7 @@ func (appKeepers *AppKeepers) SetupHooks() {
 			// insert gamm hooks receivers here
 			appKeepers.PoolIncentivesKeeper.Hooks(),
 			appKeepers.TwapKeeper.GammHooks(),
+			appKeepers.ProtoRevKeeper.Hooks(),
 		),
 	)
 
