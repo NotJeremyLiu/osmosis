@@ -79,6 +79,7 @@ add_genesis_accounts () {
     osmosisd add-genesis-account osmo1myv43sqgnj5sm4zl98ftl45af9cfzk7nhjxjqh 100000000000uosmo,100000000000uion,100000000000stake --home $OSMOSIS_HOME
     osmosisd add-genesis-account osmo14gs9zqh8m49yy9kscjqu9h72exyf295afg6kgk 100000000000uosmo,100000000000uion,100000000000stake --home $OSMOSIS_HOME
     osmosisd add-genesis-account osmo1jllfytsz4dryxhz5tl7u73v29exsf80vz52ucc 1000000000000uosmo,1000000000000uion,1000000000000stake --home $OSMOSIS_HOME
+    osmosisd add-genesis-account osmo1rzlguycwu6ge0c4y85mvpmjhmkxqz8eh3ver6n 1000000000000uosmo,1000000000000uion,1000000000000stake --home $OSMOSIS_HOME
 
     echo $MNEMONIC | osmosisd keys add $MONIKER --recover --keyring-backend=test --home $OSMOSIS_HOME
     echo $POOLSMNEMONIC | osmosisd keys add pools --recover --keyring-backend=test --home $OSMOSIS_HOME
