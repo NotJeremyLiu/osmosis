@@ -18,10 +18,21 @@ const (
 	MemStoreKey = "mem_protorev"
 )
 
+const (
+	prefixNeedToArb = iota + 1
+	prefixArbDetails
+	prefixPairsToIDs
+	prefixTokenToTokens
+	prefixPoolToRoutes
+)
+
 var (
 	// ProtoRev Code
-	NeedToArbKey  = []byte("need_to_arb")
-	ArbDetailsKey = []byte("arb_details")
+	KeyNeedToArb     = []byte{prefixNeedToArb}
+	KeyArbDeatils    = []byte{prefixArbDetails}
+	KeyPairsToIDs    = []byte{prefixPairsToIDs}
+	KeyTokenToTokens = []byte{prefixTokenToTokens}
+	KeyPoolToRoutes  = []byte{prefixPoolToRoutes}
 )
 
 func GetTokenStoreKey(token string) []byte {
