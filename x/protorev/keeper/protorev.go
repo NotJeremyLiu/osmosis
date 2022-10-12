@@ -2,11 +2,11 @@ package keeper
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	gammtypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
 	"github.com/osmosis-labs/osmosis/v12/x/protorev/types"
 )
 
@@ -90,15 +90,9 @@ func (k Keeper) SetConnectedTokens(ctx sdk.Context, token *string, connectedToke
 	store.Set(key, value)
 }
 
-func (k Keeper) UpdateConnectedTokens(ctx sdk.Context, pool gammtypes.PoolI) {
-	var allDenoms []string
+func (k Keeper) UpdateConnectedTokens(ctx sdk.Context, allDenoms *[]string) {
 
-	for _, coin := range pool.GetTotalPoolLiquidity(ctx) {
-		allDenoms = append(allDenoms, coin.Denom)
-	}
-
-	for _, coin := range pool.GetTotalPoolLiquidity(ctx) {
-		token := coin.Denom
+	for _, token := range *allDenoms {
 		fmt.Println(token)
 		connectedTokensRes := k.GetConnectedTokens(ctx, &token)
 		fmt.Println(connectedTokensRes)
@@ -115,7 +109,7 @@ func (k Keeper) UpdateConnectedTokens(ctx sdk.Context, pool gammtypes.PoolI) {
 
 		fmt.Println(allDenoms)
 
-		for _, denom := range allDenoms {
+		for _, denom := range *allDenoms {
 			if !types.Contains(connectedTokens, denom) && denom != token {
 				connectedTokens = append(connectedTokens, denom)
 			} else {
@@ -159,6 +153,42 @@ func (k Keeper) SetConnectedTokensToPoolIDs(ctx sdk.Context, tokenA string, toke
 	}
 
 	store.Set(key, value)
+}
+
+func (k Keeper) UpdateConnectedTokensToPoolIDs(ctx sdk.Context, allDenoms []string, poolID uint64) {
+
+	sort.Strings(allDenoms)
+
+	fmt.Println(allDenoms)
+
+	for i, tokenA := range allDenoms {
+		for _, tokenB := range allDenoms[i+1:] {
+			fmt.Println(tokenA)
+			fmt.Println(tokenB)
+
+			pairsToPoolIDsRes := k.GetConnectedTokensToPoolIDs(ctx, tokenA, tokenB)
+
+			fmt.Println(pairsToPoolIDsRes)
+
+			var pairsToPoolIDs []uint64
+
+			if pairsToPoolIDsRes == nil {
+				pairsToPoolIDs = []uint64{}
+			} else {
+				pairsToPoolIDs = pairsToPoolIDsRes.PoolIds
+			}
+
+			fmt.Println(pairsToPoolIDs)
+
+			pairsToPoolIDs = append(pairsToPoolIDs, poolID)
+
+			fmt.Println(pairsToPoolIDs)
+
+			k.SetConnectedTokensToPoolIDs(ctx, tokenA, tokenB, &types.PairsToPoolIDs{PoolIds: pairsToPoolIDs})
+			updatedPairsToPoolIDsRes := k.GetConnectedTokensToPoolIDs(ctx, tokenA, tokenB)
+			fmt.Println(&updatedPairsToPoolIDsRes.PoolIds)
+		}
+	}
 }
 
 func (k Keeper) GetPoolRoutes(ctx sdk.Context, poolID uint64) *types.ListOfCyclicRoutes {

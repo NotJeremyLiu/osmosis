@@ -32,7 +32,15 @@ func (h Hooks) AfterPoolCreated(ctx sdk.Context, sender sdk.AccAddress, poolId u
 
 	fmt.Println(pool.GetTotalPoolLiquidity(ctx))
 
-	h.k.UpdateConnectedTokens(ctx, pool)
+	var allDenoms []string
+
+	for _, coin := range pool.GetTotalPoolLiquidity(ctx) {
+		allDenoms = append(allDenoms, coin.Denom)
+	}
+
+	h.k.UpdateConnectedTokens(ctx, &allDenoms)
+
+	h.k.UpdateConnectedTokensToPoolIDs(ctx, allDenoms, poolId)
 
 }
 
