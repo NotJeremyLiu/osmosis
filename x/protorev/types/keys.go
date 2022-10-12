@@ -35,8 +35,8 @@ var (
 	KeyPoolToRoutes             = []byte{prefixPoolToRoutes}
 )
 
-func GetConnectedTokensStoreKey(token string) []byte {
-	return []byte(fmt.Sprintf("token/%s", token))
+func GetConnectedTokensStoreKey(token *string) []byte {
+	return []byte(fmt.Sprintf("token/%s", *token))
 }
 
 func GetConnectedTokensToPoolIDsStoreKey(tokenA, tokenB string) []byte {

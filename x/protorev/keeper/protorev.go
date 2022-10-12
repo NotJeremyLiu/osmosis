@@ -1,9 +1,12 @@
 package keeper
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	gammtypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
 	"github.com/osmosis-labs/osmosis/v12/x/protorev/types"
 )
 
@@ -57,7 +60,7 @@ func (k Keeper) SetArbDetails(ctx sdk.Context, arbDetails *types.ArbDetails) {
 	store.Set(types.KeyArbDetails, value)
 }
 
-func (k Keeper) GetConnectedTokens(ctx sdk.Context, token string) *types.ConnectedTokens {
+func (k Keeper) GetConnectedTokens(ctx sdk.Context, token *string) *types.ConnectedTokens {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyConnectedTokens)
 
 	key := types.GetConnectedTokensStoreKey(token)
@@ -73,7 +76,7 @@ func (k Keeper) GetConnectedTokens(ctx sdk.Context, token string) *types.Connect
 	return ret
 }
 
-func (k Keeper) SetConnectedTokens(ctx sdk.Context, token string, connectedTokens *types.ConnectedTokens) {
+func (k Keeper) SetConnectedTokens(ctx sdk.Context, token *string, connectedTokens *types.ConnectedTokens) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyConnectedTokens)
 
 	key := types.GetConnectedTokensStoreKey(token)
@@ -85,6 +88,47 @@ func (k Keeper) SetConnectedTokens(ctx sdk.Context, token string, connectedToken
 	}
 
 	store.Set(key, value)
+}
+
+func (k Keeper) UpdateConnectedTokens(ctx sdk.Context, pool gammtypes.PoolI) {
+	var allDenoms []string
+
+	for _, coin := range pool.GetTotalPoolLiquidity(ctx) {
+		allDenoms = append(allDenoms, coin.Denom)
+	}
+
+	for _, coin := range pool.GetTotalPoolLiquidity(ctx) {
+		token := coin.Denom
+		fmt.Println(token)
+		connectedTokensRes := k.GetConnectedTokens(ctx, &token)
+		fmt.Println(connectedTokensRes)
+
+		var connectedTokens []string
+
+		if connectedTokensRes == nil {
+			connectedTokens = []string{}
+		} else {
+			connectedTokens = connectedTokensRes.Tokens
+		}
+
+		fmt.Println(connectedTokens)
+
+		fmt.Println(allDenoms)
+
+		for _, denom := range allDenoms {
+			if !types.Contains(connectedTokens, denom) && denom != token {
+				connectedTokens = append(connectedTokens, denom)
+			} else {
+				fmt.Println("Already connected and/or same denom, not adding")
+			}
+		}
+
+		fmt.Println(connectedTokens)
+
+		k.SetConnectedTokens(ctx, &token, &types.ConnectedTokens{Tokens: connectedTokens})
+		updatedConnectedTokenRes := k.GetConnectedTokens(ctx, &token)
+		fmt.Println(&updatedConnectedTokenRes.Tokens)
+	}
 }
 
 func (k Keeper) GetConnectedTokensToPoolIDs(ctx sdk.Context, tokenA string, tokenB string) *types.PairsToPoolIDs {
