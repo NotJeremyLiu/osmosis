@@ -22,5 +22,10 @@ func (protoRevDec ProtoRevDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 		fmt.Println("Antehandler: PRINT PRINT")
 	}
 
+	fmt.Println(ctx.Context())
+	fmt.Println(ctx.Logger())
+	fmt.Println(ctx.EventManager().Events())
+	fmt.Println(tx.GetMsgs())
+
 	return next(ctx, tx, simulate)
 }

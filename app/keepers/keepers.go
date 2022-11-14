@@ -74,6 +74,7 @@ import (
 	txfeestypes "github.com/osmosis-labs/osmosis/v12/x/txfees/types"
 
 	protorevkeeper "github.com/osmosis-labs/osmosis/v12/x/protorev/keeper"
+	protorevtypes "github.com/osmosis-labs/osmosis/v12/x/protorev/types"
 )
 
 type AppKeepers struct {
@@ -113,8 +114,7 @@ type AppKeepers struct {
 	GovKeeper            *govkeeper.Keeper
 	WasmKeeper           *wasm.Keeper
 	TokenFactoryKeeper   *tokenfactorykeeper.Keeper
-
-	ProtoRevKeeper *protorevkeeper.Keeper
+	ProtoRevKeeper       *protorevkeeper.Keeper
 
 	// IBC modules
 	// transfer module
@@ -249,12 +249,6 @@ func (appKeepers *AppKeepers) InitNormalKeepers(
 		appKeepers.AccountKeeper, appKeepers.BankKeeper, appKeepers.DistrKeeper)
 	appKeepers.GAMMKeeper = &gammKeeper
 
-	protorevKeeper := protorevkeeper.NewKeeper(
-		appCodec, appKeepers.keys[gammtypes.StoreKey],
-		appKeepers.GetSubspace(gammtypes.ModuleName),
-		appKeepers.AccountKeeper, appKeepers.BankKeeper, appKeepers.GAMMKeeper)
-	appKeepers.ProtoRevKeeper = &protorevKeeper
-
 	appKeepers.TwapKeeper = twap.NewKeeper(
 		appKeepers.keys[twaptypes.StoreKey],
 		appKeepers.tkeys[twaptypes.TransientStoreKey],
@@ -326,6 +320,14 @@ func (appKeepers *AppKeepers) InitNormalKeepers(
 		appKeepers.DistrKeeper,
 	)
 	appKeepers.TokenFactoryKeeper = &tokenFactoryKeeper
+
+	protorevKeeper := protorevkeeper.NewKeeper(
+		appCodec, appKeepers.keys[protorevtypes.StoreKey],
+		appKeepers.tkeys[protorevtypes.TransientStoreKey],
+		appKeepers.memKeys[protorevtypes.MemStoreKey],
+		appKeepers.GetSubspace(protorevtypes.ModuleName),
+		appKeepers.AccountKeeper, appKeepers.BankKeeper, appKeepers.GAMMKeeper, appKeepers.EpochsKeeper)
+	appKeepers.ProtoRevKeeper = &protorevKeeper
 
 	// The last arguments can contain custom message handlers, and custom query handlers,
 	// if we want to allow any custom callbacks
@@ -448,6 +450,7 @@ func (appKeepers *AppKeepers) initParamsKeeper(appCodec codec.BinaryCodec, legac
 	paramsKeeper.Subspace(wasm.ModuleName)
 	paramsKeeper.Subspace(tokenfactorytypes.ModuleName)
 	paramsKeeper.Subspace(twaptypes.ModuleName)
+	paramsKeeper.Subspace(protorevtypes.ModuleName)
 
 	return paramsKeeper
 }
@@ -472,7 +475,7 @@ func (appKeepers *AppKeepers) SetupHooks() {
 			// insert gamm hooks receivers here
 			appKeepers.PoolIncentivesKeeper.Hooks(),
 			appKeepers.TwapKeeper.GammHooks(),
-			appKeepers.ProtoRevKeeper.Hooks(),
+			appKeepers.ProtoRevKeeper.GAMMHooks(),
 		),
 	)
 
@@ -504,6 +507,7 @@ func (appKeepers *AppKeepers) SetupHooks() {
 			appKeepers.SuperfluidKeeper.Hooks(),
 			appKeepers.IncentivesKeeper.Hooks(),
 			appKeepers.MintKeeper.Hooks(),
+			appKeepers.ProtoRevKeeper.EpochHooks(),
 		),
 	)
 
@@ -542,5 +546,6 @@ func KVStoreKeys() []string {
 		superfluidtypes.StoreKey,
 		wasm.StoreKey,
 		tokenfactorytypes.StoreKey,
+		protorevtypes.StoreKey,
 	}
 }

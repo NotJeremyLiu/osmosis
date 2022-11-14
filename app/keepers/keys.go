@@ -6,6 +6,8 @@ import (
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	twaptypes "github.com/osmosis-labs/osmosis/v12/x/twap/types"
+
+	protorevtypes "github.com/osmosis-labs/osmosis/v12/x/protorev/types"
 )
 
 // GenerateKeys generates new keys (KV Store, Transient store, and memory store).
@@ -15,10 +17,10 @@ func (appKeepers *AppKeepers) GenerateKeys() {
 	appKeepers.keys = sdk.NewKVStoreKeys(KVStoreKeys()...)
 
 	// Define transient store keys
-	appKeepers.tkeys = sdk.NewTransientStoreKeys(paramstypes.TStoreKey, twaptypes.TransientStoreKey)
+	appKeepers.tkeys = sdk.NewTransientStoreKeys(paramstypes.TStoreKey, twaptypes.TransientStoreKey, protorevtypes.TransientStoreKey)
 
 	// MemKeys are for information that is stored only in RAM.
-	appKeepers.memKeys = sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
+	appKeepers.memKeys = sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, protorevtypes.MemStoreKey)
 }
 
 // GetSubspace gets existing substore from keeper.

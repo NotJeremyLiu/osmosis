@@ -92,6 +92,8 @@ func (k Keeper) SetConnectedTokens(ctx sdk.Context, token *string, connectedToke
 
 func (k Keeper) UpdateConnectedTokens(ctx sdk.Context, allDenoms *[]string) {
 
+	fmt.Println("In UpdateConnectedTokens")
+
 	for _, token := range *allDenoms {
 		fmt.Println(token)
 		connectedTokensRes := k.GetConnectedTokens(ctx, &token)
@@ -157,6 +159,8 @@ func (k Keeper) SetConnectedTokensToPoolIDs(ctx sdk.Context, tokenA string, toke
 
 func (k Keeper) UpdateConnectedTokensToPoolIDs(ctx sdk.Context, allDenoms []string, poolID uint64) {
 
+	fmt.Println("In UpdateConnectedTokensToPoolIDs")
+
 	sort.Strings(allDenoms)
 
 	fmt.Println(allDenoms)
@@ -219,4 +223,111 @@ func (k Keeper) SetPoolRoutes(ctx sdk.Context, poolID uint64, listOfCyclicRoutes
 	}
 
 	store.Set(key, value)
+}
+
+func (k Keeper) UpdatePoolRoutes(ctx sdk.Context, allDenoms []string, poolID uint64) {
+
+	fmt.Println("IN UpdatePoolRoutes")
+
+	// Get PIDs to Route from the store for the newly created pool
+	routesRes := k.GetPoolRoutes(ctx, poolID)
+	fmt.Println(routesRes)
+
+	var routes []*types.CyclicRoute
+	if routesRes == nil {
+		routes = []*types.CyclicRoute{}
+	} else {
+		routes = routesRes.CyclicRoute
+	}
+	fmt.Println(routes)
+
+	for i, tokenA := range allDenoms {
+		fmt.Println(tokenA)
+		aConnectedTokensRes := k.GetConnectedTokens(ctx, &tokenA)
+		fmt.Println(aConnectedTokensRes)
+		aConnectedTokens := &aConnectedTokensRes.Tokens
+		fmt.Println(aConnectedTokens)
+
+		for _, tokenB := range allDenoms[i+1:] {
+			fmt.Println(tokenB)
+			bConnectedTokensRes := k.GetConnectedTokens(ctx, &tokenB)
+			fmt.Println(bConnectedTokensRes)
+			bConnectedTokens := &bConnectedTokensRes.Tokens
+			fmt.Println(bConnectedTokens)
+
+			// Compare the two connected tokens lists and find the intersection
+			intersection := types.Intersection(aConnectedTokens, bConnectedTokens)
+			fmt.Println(intersection)
+
+			for _, tokenX := range intersection {
+				fmt.Println(tokenX)
+
+				// Get the pool IDs for tokenA-tokenX and tokenX-tokenB
+				pairsToPoolIDsResA := k.GetConnectedTokensToPoolIDs(ctx, tokenA, tokenX)
+				fmt.Println(pairsToPoolIDsResA)
+				pairsToPoolIDsResB := k.GetConnectedTokensToPoolIDs(ctx, tokenB, tokenX)
+				fmt.Println(pairsToPoolIDsResB)
+
+				for _, poolIDA := range pairsToPoolIDsResA.PoolIds {
+					fmt.Println(poolIDA)
+					if poolIDA != poolID {
+						for _, poolIDB := range pairsToPoolIDsResB.PoolIds {
+							fmt.Println(poolIDB)
+							if poolIDB != poolID {
+								if poolIDA != poolIDB {
+									// Add the route to the list of routes for the new pool created
+									routes = append(routes, &types.CyclicRoute{Id: []uint64{poolIDA, poolID, poolIDB}})
+									fmt.Println(routes)
+									k.SetPoolRoutes(ctx, poolID, &types.ListOfCyclicRoutes{CyclicRoute: routes})
+
+									// only used to checking state change
+									updatedRoutesRes := k.GetPoolRoutes(ctx, poolID)
+									fmt.Println(updatedRoutesRes)
+									fmt.Println(updatedRoutesRes.CyclicRoute)
+
+									// Add the route to the list of routes for the pool with ID poolIDA
+									routesResPoolIDA := k.GetPoolRoutes(ctx, poolIDA)
+									fmt.Println(routesResPoolIDA)
+									var routesPoolIDA []*types.CyclicRoute
+									if routesResPoolIDA == nil {
+										routesPoolIDA = []*types.CyclicRoute{}
+									} else {
+										routesPoolIDA = routesResPoolIDA.CyclicRoute
+									}
+									fmt.Println(routesPoolIDA)
+									routesPoolIDA = append(routesPoolIDA, &types.CyclicRoute{Id: []uint64{poolIDB, poolIDA, poolID}})
+									fmt.Println(routesPoolIDA)
+									k.SetPoolRoutes(ctx, poolIDA, &types.ListOfCyclicRoutes{CyclicRoute: routesPoolIDA})
+
+									// Only used to checking state change
+									updatedRoutesResPoolIDA := k.GetPoolRoutes(ctx, poolIDA)
+									fmt.Println(updatedRoutesResPoolIDA)
+									fmt.Println(updatedRoutesResPoolIDA.CyclicRoute)
+
+									// Add the route to the list of routes for the pool with ID poolIDB
+									routesResPoolIDB := k.GetPoolRoutes(ctx, poolIDB)
+									fmt.Println(routesResPoolIDB)
+									var routesPoolIDB []*types.CyclicRoute
+									if routesResPoolIDB == nil {
+										routesPoolIDB = []*types.CyclicRoute{}
+									} else {
+										routesPoolIDB = routesResPoolIDB.CyclicRoute
+									}
+									fmt.Println(routesPoolIDB)
+									routesPoolIDB = append(routesPoolIDB, &types.CyclicRoute{Id: []uint64{poolID, poolIDB, poolIDA}})
+									fmt.Println(routesPoolIDB)
+									k.SetPoolRoutes(ctx, poolIDB, &types.ListOfCyclicRoutes{CyclicRoute: routesPoolIDB})
+
+									// Only used to checking state change
+									updatedRoutesResPoolIDB := k.GetPoolRoutes(ctx, poolIDB)
+									fmt.Println(updatedRoutesResPoolIDB)
+									fmt.Println(updatedRoutesResPoolIDB.CyclicRoute)
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }

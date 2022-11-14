@@ -8,3 +8,13 @@ func Contains(s []string, str string) bool {
 	}
 	return false
 }
+
+func Intersection(a, b *[]string) []string {
+	var result []string
+	for _, v := range *a {
+		if Contains(*b, v) {
+			result = append(result, v)
+		}
+	}
+	return result
+}
